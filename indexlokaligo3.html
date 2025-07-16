@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lokaligo - Hitta er nästa lokal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f8f8; /* Light background for overall page */
+            padding-bottom: 6rem; /* Add padding at the bottom to prevent sticky button from overlapping content */
+        }
+        .section-bg-light {
+            background-color: #f8f8f8;
+            color: #1f2937; /* Dark text for light sections */
+        }
+        .section-bg-dark {
+            background-color: #2D4C63; /* Dark blue from images */
+            color: #ffffff; /* White text for dark sections */
+        }
+        .accent-orange {
+            background-color: #FF9933; /* Orange accent from images */
+        }
+        .text-accent-orange {
+            color: #FF9933;
+        }
+        .card {
+            background-color: #ffffff; /* White background for cards */
+            border-radius: 1rem; /* Rounded corners for cards */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+            color: #1f2937; /* Default text color for cards */
+        }
+        /* Global icon-circle styling */
+        .icon-circle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 9999px; /* Full circle */
+            background-color: #ffffff; /* White background as per image, no fill */
+            color: #FF9933; /* Orange icon color from image */
+            border: 1px solid #FF9933; /* Orange border for the circle - matching icon color */
+        }
+        .accordion-item {
+            border-bottom: 1px solid #e5e7eb; /* Light gray border */
+        }
+        .accordion-header {
+            cursor: pointer;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-content.active {
+            max-height: 200px; /* Adjust as needed for content */
+        }
+        /* Custom styles for the form */
+        .form-section-header {
+            font-size: 1.75rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #1f2937; /* text-gray-900 */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .form-label {
+            font-weight: 600; /* font-semibold */
+            color: #374151; /* text-gray-700 */
+            margin-bottom: 0.5rem; /* mb-2 */
+            display: block;
+        }
+        .form-input, .form-textarea, .form-select {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem; /* py-3 px-4 */
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            background-color: #ffffff; /* Keep input background light for usability */
+            color: #1a202c; /* Dark text for input values */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* shadow-sm */
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: #718096; /* Darker placeholder text */
+        }
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: #FF9933; /* focus:border-accent-orange */
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.2); /* focus:ring-accent-orange */
+        }
+        .checkbox-label, .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            background-color: #ffffff; /* White background for checkbox/radio labels */
+            color: #4b5563; /* Dark gray text */
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .checkbox-label:hover, .radio-label:hover {
+            border-color: #FF9933;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .checkbox-input, .radio-input {
+            margin-right: 0.75rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: #FF9933; /* Sets checkbox color */
+        }
+        .checkbox-input:checked + span, .radio-input:checked + span {
+            font-weight: 600;
+            color: #FF9933; /* Orange text when checked */
+        }
+        .checkbox-input:checked + span::before, .radio-input:checked + span::before {
+            content: '';
+            display: inline-block;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background-color: #FF9933;
+            margin-right: 0.5rem;
+        }
+        .radio-input:checked + span::before {
+            border-radius: 50%; /* Makes radio button round */
+        }
+        .checkbox-input:checked + span::before {
+            border-radius: 0.25rem; /* Makes checkbox square */
+        }
+
+        .checkbox-label.checked, .radio-label.checked {
+            border-color: #FF9933;
+            background-color: #fff7ed; /* Lighter orange background on selection */
+        }
+
+        .info-box {
+            background-color: #fffbeb; /* Light yellow */
+            border-left: 4px solid #f59e0b; /* Amber */
+            color: #92400e; /* Dark amber text */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Mobile menu styles */
+        .mobile-menu {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(100%);
+        }
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+        .hidden-field {
+            display: none;
+        }
+
+        /* Sticky CTA button styles */
+        .sticky-cta-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white background */
+            padding: 1rem 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Shadow at the top */
+            z-index: 1000; /* Ensure it's above other content */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+        .sticky-cta-button {
+            width: 90%; /* Make button wider on smaller screens */
+            max-width: 400px; /* Max width for larger screens */
+            font-size: 1.125rem; /* text-lg */
+            padding: 1rem 2.5rem; /* py-4 px-10 */
+            border-radius: 0.75rem; /* rounded-lg */
+        }
+
+        @media (min-width: 768px) { /* Medium screens and up */
+            .sticky-cta-button {
+                width: auto; /* Auto width on larger screens */
+            }
+        }
+        /* Styles for the "How it Works" cards */
+        .how-it-works-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            border-radius: 1rem;
+            background-color: #ffffff; /* White background for the box */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Updated to match .card shadow */
+            width: 100%; /* Ensure full width on mobile */
+            color: #1f2937; /* Dark text for cards */
+        }
+        .how-it-works-card .icon-circle {
+            margin-bottom: 1rem; /* Consistent margin */
+        }
+        .how-it-works-card h4 {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            color: #1f2937; /* Dark text for headers */
+            margin-bottom: 0.5rem;
+        }
+        .how-it-works-card p {
+            color: #4b5563; /* Gray text for paragraphs */
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1.4;
+        }
+        /* No connecting lines needed for this design */
+        .how-it-works-line {
+            display: none !important; /* Ensure lines are hidden */
+        }
+
+        /* Adjust grid gap for better spacing on larger screens */
+        .how-it-works-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Single column on mobile */
+            gap: 2rem; /* Gap between cards */
+            max-width: 6xl;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (min-width: 768px) { /* Medium screens and up */
+            .how-it-works-grid {
+                grid-template-columns: repeat(3, 1fr); /* Three columns on desktop */
+            }
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            background-color: #f8f8f8; /* Light background */
+            padding: 4rem 1.5rem; /* Added padding */
+            text-align: center; /* Centered text */
+        }
+
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            max-width: 6xl;
+            margin: 0 auto;
+            position: relative; /* For the line */
+        }
+
+        @media (min-width: 768px) {
+            .timeline-grid {
+                grid-template-columns: repeat(5, 1fr); /* 5 columns for 5 steps */
+            }
+            .timeline-grid::before { /* Horizontal line for desktop timeline */
+                content: '';
+                position: absolute;
+                top: 4.5rem; /* Adjust to align with the center of the circles */
+                left: 0;
+                right: 0;
+                height: 2px;
+                background-color: #FF9933; /* Orange line */
+                z-index: 5;
+                display: block; /* Shown on larger screens */
+            }
+        }
+
+        .timeline-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            padding: 2rem 1rem; /* Added padding */
+            background-color: #ffffff; /* White background for the box */
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+        }
+
+        .timeline-item .icon-circle {
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 10; /* Ensure icon is above the line */
+        }
+
+        .timeline-item h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-item p {
+            color: #4b5563;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        /* Numbering above icons */
+        .timeline-item .step-number {
+            position: absolute;
+            top: -1.5rem; /* Adjust position above the circle */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem; /* Slightly larger font for step number */
+            font-weight: 700; /* font-bold */
+            color: #FF9933; /* Orange color */
+            background-color: #f8f8f8; /* Match section background */
+            padding: 0.2rem 0.6rem; /* Adjusted padding */
+            border-radius: 0.5rem;
+            z-index: 15; /* Ensure number is above everything */
+            display: none; /* Hidden by default, shown on larger screens */
+        }
+
+        @media (min-width: 768px) {
+            .timeline-item .step-number {
+                display: block;
+            }
+        }
+
+        /* Why Choose Us Section */
+        #why-choose-us .card {
+            background-color: #ffffff; /* White background for cards */
+        }
+        #why-choose-us h4 {
+            color: #1f2937; /* Dark text for headers */
+        }
+        #why-choose-us p {
+            color: #4b5563; /* Gray text for paragraphs */
+        }
+
+        /* Testimonials Section */
+        #testimonials-section .card {
+            background-color: #ffffff; /* White background for cards */
+        }
+        #testimonials-section p {
+            color: #4b5563; /* Gray text for paragraphs */
+        }
+        #testimonials-section .font-semibold {
+            color: #1f2937; /* Dark text for names */
+        }
+
+        /* Call to Action for Property Owners/Brokers (retains dark theme) */
+        .combined-owner-section {
+            background-color: #2D4C63; /* Dark blue background */
+            color: #ffffff; /* White text */
+            padding: 3rem 1.5rem; /* Reduced padding */
+            text-align: center;
+            border-radius: 1rem;
+            margin: 2rem auto;
+            max-width: 7xl;
+        }
+        .combined-owner-section h3 {
+            margin-bottom: 1.5rem; /* Adjusted margin */
+        }
+        .combined-owner-section p {
+            margin-bottom: 2rem; /* Adjusted margin */
+        }
+        .owner-contact-form-group {
+            display: flex;
+            flex-direction: column; /* Stack inputs vertically on mobile */
+            gap: 1rem; /* Space between inputs */
+            max-width: 500px; /* Limit form width */
+            margin: 0 auto; /* Center the form */
+        }
+        @media (min-width: 768px) {
+            .owner-contact-form-group {
+                flex-direction: row; /* Align inputs horizontally on desktop */
+                justify-content: center;
+                align-items: center;
+                gap: 1.5rem; /* Larger space between inputs on desktop */
+            }
+            .owner-contact-form-group input {
+                flex: 1; /* Distribute space evenly */
+            }
+            .owner-contact-form-group button {
+                flex-shrink: 0; /* Prevent button from shrinking */
+                width: auto; /* Auto width on desktop */
+            }
+        }
+        .combined-owner-section .form-label {
+            color: #cbd5e0; /* Light gray text for labels in dark section */
+        }
+        .owner-contact-form-group input {
+            background-color: #ffffff; /* Keep input background light */
+            color: #1a202c; /* Dark text for input values */
+            border: 1px solid #d1d5db; /* Light border */
+            padding: 0.75rem 1rem; /* Match other form inputs */
+            border-radius: 0.5rem; /* Match other form inputs */
+        }
+        .owner-contact-form-group input::placeholder {
+            color: #718096; /* Darker placeholder text */
+        }
+        .owner-contact-form-group button {
+            background-color: #FF9933;
+            color: #ffffff;
+            font-size: 1.125rem; /* Slightly larger button text */
+            padding: 0.875rem 2.5rem; /* Adjusted padding */
+            border-radius: 0.75rem; /* Rounded corners */
+            font-weight: 600; /* Semibold */
+            transition: background-color 0.3s ease-in-out;
+        }
+        .owner-contact-form-group button:hover {
+            background-color: #e68a2e; /* Darker orange on hover */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6 md:px-12 flex justify-between items-center rounded-b-xl">
+        <div class="text-2xl font-bold text-gray-800">Lokaligo</div>
+        <nav class="hidden md:flex space-x-8">
+            <a href="#form-section" class="text-gray-600 hover:text-gray-900 font-medium">Sök lokal</a>
+            <a href="#for-owners" class="text-gray-600 hover:text-gray-900 font-medium">För fastighetsägare</a>
+            <a href="#faq" class="text-gray-600 hover:text-gray-900 font-medium">Vanliga frågor</a>
+            <a href="#contact" class="text-gray-600 hover:text-gray-900 font-medium">Kontakt</a>
+        </nav>
+        <a href="#form-section" class="accent-orange hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">Kom igång</a>
+        <button id="mobile-menu-button" class="md:hidden text-gray-600 focus:outline-none" aria-label="Toggle mobile menu" aria-expanded="false" aria-controls="mobile-menu-content">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </header>
+
+    <!-- Mobile Menu (initially hidden) -->
+    <div id="mobile-menu-content" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-white shadow-lg p-6 z-50 md:hidden">
+        <div class="flex justify-end mb-8">
+            <button id="close-mobile-menu" class="text-gray-600 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <nav class="flex flex-col space-y-4">
+            <a href="#form-section" class="text-gray-800 hover:text-accent-orange font-medium text-lg">Sök lokal</a>
+            <a href="#for-owners" class="text-gray-800 hover:text-accent-orange font-medium text-lg">För fastighetsägare</a>
+            <a href="#faq" class="text-gray-800 hover:text-accent-orange font-medium text-lg">Vanliga frågor</a>
+            <a href="#contact" class="text-gray-800 hover:text-accent-orange font-medium text-lg">Kontakt</a>
+        </nav>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="bg-gray-800 text-white py-16 px-6 md:py-20 md:px-12 text-center rounded-xl my-8 mx-auto max-w-7xl">
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4 md:mb-6">Hitta er nästa lokal – enklare, snabbare, smartare</h1>
+        <p class="text-base md:text-xl mb-8 md:mb-10 opacity-90 max-w-3xl mx-auto">Lokaligo matchar lediga lokaler med rätt företag på ett par klick, ingen inloggning krävs.</p>
+        <a href="#form-section" class="accent-orange hover:bg-orange-600 text-white font-bold py-3 px-8 md:py-4 md:px-10 rounded-lg shadow-lg transition duration-300 ease-in-out text-base md:text-lg">HITTA NY LOKAL!</a>
+    </section>
+
+    <!-- Form Section - Moved Up -->
+    <section id="form-section" class="section-bg-light py-10 px-6 md:py-16 md:px-12">
+        <div class="max-w-4xl mx-auto card p-6 md:p-8">
+            <h3 class="form-section-header text-center mb-8 md:mb-10 text-2xl md:text-3xl">Hitta er nästa lokal – Enkelt & Kostnadsfritt!</h3>
+            <p class="text-gray-600 mb-6 md:mb-8 text-center text-sm md:text-base">Fyll i formuläret, vi matchar era lokalbehov med ledande fastighetsägare och mäklare för att hitta den perfekta lokalen för just ert företag.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 md:mb-8 text-xs md:text-sm text-gray-700">
+                <div class="flex items-center"><svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Spara tid – slipp letandet själva!</div>
+                <div class="flex items-center"><svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Skräddarsydda förslag </div>
+                <div class="flex items-center"><svg class="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Tillgång till hela marknaden</div>
+            </div>
+
+            <form id="lokal-form">
+                <!-- Vad söker ni? (What are you looking for?) -->
+                <div class="mb-6 md:mb-8">
+                    <h4 class="form-section-header text-xl md:text-2xl">Vad söker ni?</h4>
+                    <p class="form-label mb-3 md:mb-4 text-sm md:text-base">Välj en eller flera lokaltyper</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Butiker" class="checkbox-input">
+                            <span>Butiker</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Industrier & verkstäder" class="checkbox-input">
+                            <span>Industrier & verkstäder</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Kontor" class="checkbox-input">
+                            <span>Kontor</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Kontorshotell & coworking" class="checkbox-input">
+                            <span>Kontorshotell & coworking</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Lager & logistik" class="checkbox-input">
+                            <span>Lager & logistik</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Restauranger & caféer" class="checkbox-input">
+                            <span>Restauranger & caféer</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Skola, vård & omsorg" class="checkbox-input">
+                            <span>Skola, vård & omsorg</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="lokaltyp" value="Övrigt" class="checkbox-input">
+                            <span>Övrigt</span>
+                        </label>
+                    </div>
+
+                    <p class="form-label mt-6 md:mt-8 mb-3 md:mb-4 text-sm md:text-base">Var söker du lokal?</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="ort" value="Stockholm" class="checkbox-input">
+                            <span>Stockholm</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="ort" value="Göteborg" class="checkbox-input">
+                            <span>Göteborg</span>
+                        </label>
+                        <label class="checkbox-label text-sm md:text-base">
+                            <input type="checkbox" name="ort" value="Malmö" class="checkbox-input">
+                            <span>Malmö</span>
+                        </label>
+                        <!-- Add more cities as needed -->
+                    </div>
+                </div>
+
+                <!-- Yta och budget (Area and budget) -->
+                <div class="mb-6 md:mb-8">
+                    <h4 class="form-section-header text-xl md:text-2xl">Yta och budget</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-3 md:mb-4">
+                        <div>
+                            <label for="min_yta" class="form-label text-sm md:text-base">Minsta yta (m²)</label>
+                            <input type="number" id="min_yta" name="min_yta" placeholder="Minsta yta (m²)" class="form-input text-sm md:text-base" min="0" step="10">
+                        </div>
+                        <div>
+                            <label for="max_yta" class="form-label text-sm md:text-base">Största yta (m²)</label>
+                            <input type="number" id="max_yta" name="max_yta" placeholder="Största yta (m²)" class="form-input text-sm md:text-base" min="0" step="10">
+                        </div>
+                    </div>
+                    <!-- New field: How many will work in the premises? -->
+                    <div class="mt-3 md:mt-4">
+                        <label for="antal_anstallda" class="form-label text-sm md:text-base">Hur många ska arbeta i lokalen?</label>
+                        <input type="number" id="antal_anstallda" name="antal_anstallda" placeholder="Antal anställda" class="form-input text-sm md:text-base" min="1">
+                    </div>
+                    <div class="mt-3 md:mt-4">
+                        <label for="manadsbudget" class="form-label text-sm md:text-base">Ungefärlig månadsbudget (kr/mån)</label>
+                        <input type="number" id="manadsbudget" name="manadsbudget" placeholder="Ungefärlig månadsbudget (kr/mån)" class="form-input text-sm md:text-base" min="1000" step="1000">
+                    </div>
+                </div>
+
+                <!-- Tillträde och nuvarande avtal (Access and current agreement) -->
+                <div class="mb-6 md:mb-8">
+                    <h4 class="form-section-header text-xl md:text-2xl">Tillträde och nuvarande avtal</h4>
+                    <p class="form-label mb-3 md:mb-4 text-sm md:text-base">Önskat tillträde till er nya lokal</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+                        <label class="radio-label text-sm md:text-base">
+                            <input type="radio" name="tilltrade" value="Omgående" class="radio-input">
+                            <span>Omgående</span>
+                        </label>
+                        <label class="radio-label text-sm md:text-base">
+                            <input type="radio" name="tilltrade" value="6-12 månader" class="radio-input">
+                            <span>6-12 månader</span>
+                        </label>
+                        <label class="radio-label text-sm md:text-base">
+                            <input type="radio" name="tilltrade" value="12+ månader" class="radio-input">
+                            <span>12+ månader</span>
+                        </label>
+                    </div>
+
+                    <p class="form-label mb-3 md:mb-4 text-sm md:text-base">Sitter du på ett hyreskontrakt idag?</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                        <label class="radio-label text-sm md:text-base">
+                            <input type="radio" name="hyreskontrakt" value="Ja" class="radio-input" id="hyreskontrakt-ja">
+                            <span>Ja</span>
+                        </label>
+                        <label class="radio-label text-sm md:text-base">
+                            <input type="radio" name="hyreskontrakt" value="Nej" class="radio-input" id="hyreskontrakt-nej">
+                            <span>Nej</span>
+                        </label>
+                    </div>
+
+                    <!-- New field: Months remaining on lease -->
+                    <div id="manader-kvar-field" class="mt-6 md:mt-8 hidden-field">
+                        <p class="form-label mb-3 md:mb-4 text-sm md:text-base">Hur många månader kvar har ni på ert nuvarande hyreskontrakt?</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                            <label class="radio-label text-sm md:text-base">
+                                <input type="radio" name="manader_kvar" value="0-3" class="radio-input">
+                                <span>0-3 månader</span>
+                            </label>
+                            <label class="radio-label text-sm md:text-base">
+                                <input type="radio" name="manader_kvar" value="3-6" class="radio-input">
+                                <span>3-6 månader</span>
+                            </label>
+                            <label class="radio-label text-sm md:text-base">
+                                <input type="radio" name="manader_kvar" value="6-12" class="radio-input">
+                                <span>6-12 månader</span>
+                            </label>
+                            <label class="radio-label text-sm md:text-base">
+                                <input type="radio" name="manader_kvar" value="12+" class="radio-input">
+                                <span>12+ månader</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Övriga önskemål (Other wishes) -->
+                <div class="mb-6 md:mb-8">
+                    <h4 class="form-section-header text-xl md:text-2xl">Övriga önskemål</h4>
+                    <label for="ovriga_onskemal" class="form-label text-sm md:text-base">Beskriv vad ni söker för fler relevanta förslag</label>
+                    <textarea id="ovriga_onskemal" name="ovriga_onskemal" rows="5" placeholder="T.ex. Önskas öppen planlösning, bra kommunikationer, parkering, specifika krav på ventilation etc." class="form-textarea text-sm md:text-base"></textarea>
+                </div>
+
+                <!-- Dina kontaktuppgifter (Your contact details) -->
+                <div class="mb-6 md:mb-8">
+                    <h4 class="form-section-header text-xl md:text-2xl">Dina kontaktuppgifter</h4>
+                    <p class="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">För att kunna ta del av resultatet fyll i dina kontaktuppgifter nedan.</p>
+                    <div class="space-y-3 md:space-y-4">
+                        <div>
+                            <label for="foretag" class="form-label text-sm md:text-base">Företag</label>
+                            <input type="text" id="foretag" name="foretag" placeholder="Företag" class="form-input text-sm md:text-base" required>
+                        </div>
+                        <div>
+                            <label for="kontaktperson" class="form-label text-sm md:text-base">Kontaktperson</label>
+                            <input type="text" id="kontaktperson" name="kontaktperson" placeholder="För- och efternamn" class="form-input text-sm md:text-base" required>
+                        </div>
+                        <div>
+                            <label for="telefon" class="form-label text-sm md:text-base">Telefon</label>
+                            <input type="tel" id="telefon" name="telefon" placeholder="Telefon" class="form-input text-sm md:text-base" required>
+                        </div>
+                        <div>
+                            <label for="email" class="form-label text-sm md:text-base">Email</label>
+                            <input type="email" id="email" name="email" placeholder="Email" class="form-input text-sm md:text-base" required>
+                        </div>
+                    </div>
+                    <div class="info-box mt-4 md:mt-6 flex items-start">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 text-f59e0b flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="text-xs md:text-sm">Vi hatar också spam. Dina kontaktuppgifter hanteras konfidentiellt och delas endast med relevanta fastighetsägare/mäklare för att uppfylla din förfrågan.</p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8 md:mt-10">
+                    <p class="text-gray-700 font-semibold text-base md:text-lg mb-3 md:mb-4">Välkommen till Lokaligo!</p>
+                    <button type="submit" name="submit_form" class="accent-orange hover:bg-orange-600 text-white font-bold py-3 px-10 md:py-4 md:px-12 rounded-lg shadow-lg transition duration-300 ease-in-out text-lg md:text-xl">Skicka förfrågan</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- How it Works Section - Updated Content & Design -->
+    <section id="how-it-works" class="section-bg-light py-10 px-6 md:py-16 md:px-12 text-center relative">
+        <h3 class="text-2xl md:text-4xl font-bold text-gray-800 mb-4 md:mb-6">Så här går det till</h3>
+        <p class="text-base md:text-xl mb-8 md:mb-12 opacity-90 max-w-3xl mx-auto">Att hitta den perfekta lokalen för ert företag ska inte vara svårt. Låt Lokaligo göra jobbet åt er.</p>
+
+        <div class="how-it-works-grid">
+            <!-- Step 1 -->
+            <div class="how-it-works-card">
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">1. Fyll i er förfrågan</h4>
+                <p class="max-w-[200px] text-sm md:text-base">Berätta enkelt vad ni söker för lokal och era önskemål.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="how-it-works-card">
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">2. Vi matchar er med fastighetsägare</h4>
+                <p class="max-w-[200px] text-sm md:text-base">Vi kopplar er med relevanta fastighetsägare och mäklare i vårt nätverk.</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="how-it-works-card">
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">3. Få skräddarsydda förslag</h4>
+                <p class="max-w-[200px] text-sm md:text-base">Ni får konkreta förslag direkt anpassade efter era behov, redo för visning.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Timeline Section: Your Journey to the Dream Premises -->
+    <section id="timeline-section" class="section-bg-light py-10 px-6 md:py-16 md:px-12 text-center">
+        <h3 class="text-2xl md:text-4xl font-bold text-gray-800 mb-8 md:mb-12">Så här fungerar processen efter inskickat formulär</h3>
+
+        <div class="timeline-grid">
+            <!-- Step 1: Inskickad förfrågan -->
+            <div class="timeline-item">
+                <span class="step-number">Steg 1</span>
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Er förfrågan skickas in</h4>
+                <p class="text-sm md:text-base">Fyll i formuläret. Startpunkten för er lokalsökning.</p>
+            </div>
+
+            <!-- Step 2: Analys & Matchning -->
+            <div class="timeline-item">
+                <span class="step-number">Steg 2</span>
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4-4m4-4l4-4"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Analys & Matchning</h4>
+                <p class="text-sm md:text-base">Vi analyserar och matchar era behov med lediga lokaler.</p>
+            </div>
+
+            <!-- Step 3: Personlig kontakt & Förslag -->
+            <div class="timeline-item">
+                <span class="step-number">Steg 3</span>
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-9 13V3"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Personlig kontakt & Förslag</h4>
+                <p class="text-sm md:text-base">Fastighetsägare/mäklare kontaktar er med skräddarsydda förslag.</p>
+            </div>
+
+            <!-- Step 4: Visning & Förhandling -->
+            <div class="timeline-item">
+                <span class="step-number">Steg 4</span>
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Visning & Förhandling</h4>
+                <p class="text-sm md:text-base">Boka visningar och få stöd för bästa hyresavtal.</p>
+            </div>
+
+            <!-- Step 5: Flytt till nya lokalen! -->
+            <div class="timeline-item">
+                <span class="step-number">Steg 5</span>
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l2-2m-2 2l-2 2m2 2l2 2m-2-2h10a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Flytt till nya lokalen!</h4>
+                <p class="text-sm md:text-base">Flytta in i er perfekta lokal och starta er nya era.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Section: Därför ska du välja Lokaligo -->
+    <section id="why-choose-us" class="section-bg-light py-10 px-6 md:py-16 md:px-12 text-center">
+        <h3 class="text-2xl md:text-4xl font-bold text-gray-800 mb-8 md:mb-12">Därför ska du välja Lokaligo</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+            <!-- USP 1: Tidsbesparande -->
+            <div class="card p-6 md:p-8 flex flex-col items-center text-center">
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Spara tid</h4>
+                <p class="text-sm md:text-base text-gray-600">Vi gör jobbet åt er. Slipp tidskrävande letande efter lokaler.</p>
+            </div>
+            <!-- USP 2: Brett utbud -->
+            <div class="card p-6 md:p-8 flex flex-col items-center text-center">
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m-1 4h1m4-4h1m-1 4h1m-1 4h1m-1 4h1M3 21h18"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Brett utbud</h4>
+                <p class="text-sm md:text-base text-gray-600">Tillgång till både annonserade och "dolda" lokaler på marknaden.</p>
+            </div>
+            <!-- USP 3: Helt kostnadsfritt -->
+            <div class="card p-6 md:p-8 flex flex-col items-center text-center">
+                <div class="icon-circle w-14 h-14 md:w-16 md:h-16 mb-4">
+                    <svg class="w-7 h-7 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                </div>
+                <h4 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Helt kostnadsfritt</h4>
+                <p class="text-sm md:text-base text-gray-600">Vår tjänst är helt gratis för er som söker lokal.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Section: Number of satisfied companies -->
+    <section class="bg-gray-800 text-white py-16 px-6 md:py-20 md:px-12 text-center rounded-xl my-8 mx-auto max-w-7xl">
+        <h3 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4 md:mb-6 text-accent-orange">Över 100+</h3>
+        <p class="text-base md:text-xl mb-8 md:mb-10 opacity-90 max-w-3xl mx-auto">Företag har redan hittat sin rätta lokal med Lokaligo. Låt oss hjälpa dig också!</p>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials-section" class="section-bg-light py-10 px-6 md:py-16 md:px-12 text-center">
+  
+        <h3 class="text-2xl md:text-4xl font-bold text-gray-800 mb-8 md:mb-12">Nöjda företag berättar om Lokaligo</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+            <!-- Testimonial 1 -->
+            <div class="card p-6 md:p-8 text-left relative">
+                <p class="text-sm md:text-base text-gray-600 italic mb-3 md:mb-4">"Fantastisk service! Vi sparade otroligt mycket tid och fick flera relevanta förslag som vi aldrig skulle hittat på egen hand. Rekommenderas varmt!"</p>
+                <p class="font-semibold text-gray-800 text-sm md:text-base">- Anna Lindgren</p>
+                <span class="absolute top-2 right-2 md:top-4 md:right-4 text-gray-300 text-5xl md:text-6xl font-serif">”</span>
+            </div>
+            <!-- Testimonial 2 -->
+            <div class="card p-6 md:p-8 text-left relative">
+                <p class="text-sm md:text-base text-gray-600 italic mb-3 md:mb-4">"Processen var så smidig. Lokaligo förstod våra behov direkt och presenterade en lokal som var perfekt för vårt växande team. Mycket nöjda!"</p>
+                <p class="font-semibold text-gray-800 text-sm md:text-base">- Erik Svensson</p>
+                <span class="absolute top-2 right-2 md:top-4 md:right-4 text-gray-300 text-5xl md:text-6xl font-serif">”</span>
+            </div>
+            <!-- Testimonial 3 -->
+            <div class="card p-6 md:p-8 text-left relative">
+                <p class="text-sm md:text-base text-gray-600 italic mb-3 md:mb-4">"Vi behövde snabbt en ny butikslokal och Lokaligo levererade över förväntan. Fick kontakt med rätt personer och affären gick snabbt. Grymt jobb!"</p>
+                <p class="font-semibold text-gray-800 text-sm md:text-base">- Sara Karlsson</p>
+                <span class="absolute top-2 right-2 md:top-4 md:right-4 text-gray-300 text-5xl md:text-6xl font-serif">”</span>
+            </div>
+            <!-- Testimonial 4 -->
+            <div class="card p-6 md:p-8 text-left relative">
+                <p class="text-sm md:text-base text-gray-600 italic mb-3 md:mb-4">"Lokaligo tog verkligen bort stressen från lokalsökandet. Professionella och effektiva. Ett ovärderligt verktyg för alla företag i Göteborg."</p>
+                <p class="font-semibold text-gray-800 text-sm md:text-base">- Johan Persson</p>
+                <span class="absolute top-2 right-2 md:top-4 md:right-4 text-gray-300 text-5xl md:text-6xl font-serif">”</span>
+            </div>
+            <!-- Testimonial 5 -->
+            <div class="card p-6 md:p-8 text-left relative">
+                <p class="text-sm md:text-base text-gray-600 italic mb-3 md:mb-4">"En otroligt enkel och effektiv lösning för lokalsökande. Fick precis det jag behövde utan krångel!"</p>
+                <p class="font-semibold text-gray-800 text-sm md:text-base">- Mikael Gustavsson</p>
+                <span class="absolute top-2 right-2 md:top-4 md:right-4 text-gray-300 text-5xl md:text-6xl font-serif">”</span>
+            </div>
+            <!-- Testimonial 6 -->
+            <div class="card p-6 md:p-8 text-left relative">
+                <p class="text-sm md:text-base text-gray-600 italic mb-3 md:mb-4">"Tack vare Lokaligo kunde vi fokusera på vår verksamhet medan de hittade den perfekta butikslokalen. Proffsigt och snabbt!"</p>
+                <p class="font-semibold text-gray-800 text-sm md:text-base">- Helena Bergman</p>
+                <span class="absolute top-2 right-2 md:top-4 md:right-4 text-gray-300 text-5xl md:text-6xl font-serif">”</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action for Property Owners/Brokers - Combined and Improved Design -->
+<section id="for-owners" class="combined-owner-section bg-gray-800 text-whitepy-10 px-6 md:py-12 md:px-12">
+<h3 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4 md:mb-6 text-white">Vill ni effektivisera er uthyrning?</h3>
+        <p class="text-base md:text-xl opacity-90 max-w-3xl mx-auto mb-6 md:mb-8">Vi hjälper er att nå kvalificerade företag som söker lokaler. Minska administrationen och fokusera på affärerna!</p>
+
+        <form id="owner-contact-form" class="owner-contact-form-group">
+            <div>
+                <label for="owner_company" class="form-label sr-only">Företag</label>
+                <input type="text" id="owner_company" name="owner_company" placeholder="Företagsnamn" required class="text-sm md:text-base">
+            </div>
+            <div>
+                <label for="owner_contact_person" class="form-label sr-only">Kontaktperson</label>
+                <input type="text" id="owner_contact_person" name="owner_contact_person" placeholder="Kontaktperson" required class="text-sm md:text-base">
+            </div>
+            <div>
+                <label for="owner_email_contact" class="form-label sr-only">Mejladress</label>
+                <input type="email" id="owner_email_contact" name="owner_email_contact" placeholder="Mejladress" required class="text-sm md:text-base">
+            </div>
+            <button type="submit" name="submit_owner_contact" class="text-base md:text-lg">Kontakta Lokaligo</button>
+        </form>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="section-bg-light py-10 px-6 md:py-16 md:px-12">
+        <h3 class="text-2xl md:text-4xl font-bold text-gray-800 mb-8 md:mb-12 text-center">Vanliga frågor och svar</h3>
+        <div class="max-w-3xl mx-auto space-y-3 md:space-y-4">
+            <!-- FAQ Item 1 -->
+            <div class="card accordion-item p-4 md:p-6">
+                <div class="accordion-header flex justify-between items-center">
+                    <h4 class="font-semibold text-base md:text-lg text-gray-800">Är Lokaligos tjänst kostnadsfri?</h4>
+                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content pt-3 md:pt-4 text-gray-600 text-sm md:text-base">
+                    Ja, vår tjänst är helt kostnadsfri för er som söker lokal. Vi får betalt av fastighetsägarna.
+                </div>
+            </div>
+            <!-- FAQ Item 2 -->
+            <div class="card accordion-item p-4 md:p-6">
+                <div class="accordion-header flex justify-between items-center">
+                    <h4 class="font-semibold text-base md:text-lg text-gray-800">Hur lång tid tar det att få förslag?</h4>
+                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content pt-3 md:pt-4 text-gray-600 text-sm md:text-base">
+                    Ni kan förvänta er att få de första förslagen inom 24 timmar efter att ni skickat in er förfrågan.
+                </div>
+            </div>
+            <!-- FAQ Item 3 -->
+            <div class="card accordion-item p-4 md:p-6">
+                <div class="accordion-header flex justify-between items-center">
+                    <h4 class="font-semibold text-base md:text-lg text-gray-800">Vilka typer av lokaler kan jag hitta via Lokaligo?</h4>
+                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content pt-3 md:pt-4 text-gray-600 text-sm md:text-base">
+                    Vi förmedlar kommersiella lokaler såsom kontor, butiker, lager och industrilokaler. Vi förmedlar inte privatbostäder.
+                </div>
+            </div>
+            <!-- FAQ Item 4 -->
+            <div class="card accordion-item p-4 md:p-6">
+                <div class="accordion-header flex justify-between items-center">
+                    <h4 class="font-semibold text-base md:text-lg text-gray-800">Delar ni mina kontaktuppgifter med tredje part?</h4>
+                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content pt-3 md:pt-4 text-gray-600 text-sm md:text-base">
+                    Vi delar endast dina kontaktuppgifter med relevanta fastighetsägare och mäklare som har lokaler som matchar dina kriterier, och endast efter ditt godkännande.
+                </div>
+            </div>
+            <!-- FAQ Item 5 -->
+            <div class="card accordion-item p-4 md:p-6">
+                <div class="accordion-header flex justify-between items-center">
+                    <h4 class="font-semibold text-base md:text-lg text-gray-800">Kan jag söka lokaler utanför Göteborg?</h4>
+                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content pt-3 md:pt-4 text-gray-600 text-sm md:text-base">
+                    Ja, Lokaligo täcker nu Göteborg, Malmö och Stockholm och expanderar hela tiden.
+                </div>
+            </div>
+            <!-- FAQ Item 6 -->
+            <div class="card accordion-item p-4 md:p-6">
+                <div class="accordion-header flex justify-between items-center">
+                    <h4 class="font-semibold text-base md:text-lg text-gray-800">Vad händer om jag inte hittar en passande lokal?</h4>
+                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content pt-3 md:pt-4 text-gray-600 text-sm md:text-base">
+                    Vi fortsätter att söka och presentera nya förslag tills ni hittar den perfekta lokalen. Vår tjänst är utformad för att vara flexibel och anpassa sig efter era behov.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-gray-800 text-white py-8 px-6 md:py-12 md:px-12 rounded-t-xl">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 text-center md:text-left">
+            <div>
+                <h4 class="text-xl md:text-2xl font-bold mb-3 md:mb-4">Lokaligo</h4>
+                <p class="text-gray-400 text-xs md:text-sm">Vi förmedlar lokaler enklare, snabbare och smartare.</p>
+            </div>
+            <div>
+                <h5 class="font-semibold text-base md:text-lg mb-3 md:mb-4">Lokaligo</h5>
+                <ul class="space-y-1 md:space-y-2 text-gray-400 text-sm">
+                    <li><a href="#" class="hover:text-white">Om oss</a></li>
+                    <li><a href="#" class="hover:text-white">Karriär</a></li>
+                    <li><a href="#" class="hover:text-white">Press</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-semibold text-base md:text-lg mb-3 md:mb-4">Tjänster</h5>
+                <ul class="space-y-1 md:space-y-2 text-gray-400 text-sm">
+                    <li><a href="#form-section" class="hover:text-white">Hitta lokal</a></li>
+                    <li><a href="#for-owners" class="hover:text-white">För fastighetsägare</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-semibold text-base md:text-lg mb-3 md:mb-4">Resurser</h5>
+                <ul class="space-y-1 md:space-y-2 text-gray-400 text-sm">
+                    <li><a href="#faq" class="hover:text-white">Vanliga frågor</a></li>
+                    <li><a href="#" class="hover:text-white">Blogg</a></li>
+                    <li><a href="#" class="hover:text-white">Användarvillkor</a></li>
+                    <li><a href="#" class="hover:text-white">Integritetspolicy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-700 mt-6 pt-6 md:mt-8 md:pt-8 text-center text-gray-500 text-xs md:text-sm">
+            &copy; 2025 Lokaligo. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Sticky CTA Button Container -->
+    <div class="sticky-cta-container">
+        <a href="#form-section" class="accent-orange hover:bg-orange-600 text-white font-bold py-3 px-8 md:py-4 md:px-10 rounded-lg shadow-lg transition duration-300 ease-in-out text-base md:text-lg sticky-cta-button">HITTA NY LOKAL!</a>
+    </div>
+
+    <script>
+        // JavaScript for accordion functionality
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const accordionContent = header.nextElementSibling;
+                const icon = header.querySelector('svg');
+
+                // Close all other open accordions
+                document.querySelectorAll('.accordion-content.active').forEach(content => {
+                    if (content !== accordionContent) {
+                        content.classList.remove('active');
+                        content.style.maxHeight = null;
+                        content.previousElementSibling.querySelector('svg').classList.remove('rotate-180');
+                    }
+                });
+
+                // Toggle current accordion
+                accordionContent.classList.toggle('active');
+                if (accordionContent.classList.contains('active')) {
+                    accordionContent.style.maxHeight = accordionContent.scrollHeight + "px";
+                    icon.classList.add('rotate-180');
+                } else {
+                    accordionContent.style.maxHeight = null;
+                    icon.classList.remove('rotate-180');
+                }
+            });
+        });
+
+        // JavaScript for mobile menu
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMobileMenuButton = document.getElementById('close-mobile-menu');
+        const mobileMenuContent = document.getElementById('mobile-menu-content');
+        const mobileMenuLinks = mobileMenuContent.querySelectorAll('a');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenuContent.classList.add('active');
+            mobileMenuButton.setAttribute('aria-expanded', 'true');
+        });
+
+        closeMobileMenuButton.addEventListener('click', () => {
+            mobileMenuContent.classList.remove('active');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+        });
+
+        // Close mobile menu when a link is clicked
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenuContent.classList.remove('active');
+                mobileMenuButton.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        // JavaScript for visual feedback on checkboxes and radio buttons
+        document.querySelectorAll('.checkbox-input, .radio-input').forEach(input => {
+            input.addEventListener('change', (event) => {
+                const label = event.target.closest('label');
+                if (event.target.checked) {
+                    label.classList.add('checked');
+                } else {
+                    label.classList.remove('checked');
+                }
+
+                // For radio buttons, ensure only one is "checked" in the group
+                if (event.target.type === 'radio' && event.target.checked) {
+                    document.querySelectorAll(`input[name="${event.target.name}"]`).forEach(otherInput => {
+                        if (otherInput !== event.target) {
+                            otherInput.closest('label').classList.remove('checked');
+                        }
+                    });
+                }
+            });
+
+            // Initial check on page load
+            if (input.checked) {
+                input.closest('label').classList.add('checked');
+            }
+        });
+
+        // Handle display of "months remaining" field based on "lease agreement"
+        const hyreskontraktRadios = document.querySelectorAll('input[name="hyreskontrakt"]');
+        const manaderKvarField = document.getElementById('manader-kvar-field');
+
+        function toggleManaderKvarField() {
+            const selectedValue = document.querySelector('input[name="hyreskontrakt"]:checked')?.value;
+            if (selectedValue === 'Ja') {
+                manaderKvarField.classList.remove('hidden-field');
+            } else {
+                manaderKvarField.classList.add('hidden-field');
+                // Reset selected radio buttons if the field is hidden
+                document.querySelectorAll('input[name="manader_kvar"]').forEach(radio => {
+                    radio.checked = false;
+                    radio.closest('label').classList.remove('checked');
+                });
+            }
+        }
+
+        hyreskontraktRadios.forEach(radio => {
+            radio.addEventListener('change', toggleManaderKvarField);
+        });
+
+        // Run the function once on load to set the correct initial state
+        toggleManaderKvarField();
+
+
+        // Handle form submission (for demonstration)
+        document.getElementById('lokal-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            alert('Formuläret har skickats! (This is a demonstration, no data is saved.)');
+            // Here you can add code to send form data to a server
+        });
+
+        // Handle owner contact form submission (for demonstration)
+        document.getElementById('owner-contact-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            const company = document.getElementById('owner_company').value;
+            const contactPerson = document.getElementById('owner_contact_person').value;
+            const email = document.getElementById('owner_email_contact').value;
+            if (company && contactPerson && email) {
+                alert(`Tack ${contactPerson} från ${company}! Vi har mottagit er förfrågan på ${email} och återkommer snart.`);
+                // Clear form fields
+                document.getElementById('owner_company').value = '';
+                document.getElementById('owner_contact_person').value = '';
+                document.getElementById('owner_email_contact').value = '';
+            } else {
+                alert('Vänligen fyll i alla obligatoriska fält (Företagsnamn, Kontaktperson, Mejladress).');
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
